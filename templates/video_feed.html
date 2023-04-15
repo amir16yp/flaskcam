@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Video Feed</title>
+</head>
+<body>
+    <img id="video_feed" src="{{ url_for('video_feed', camera_id=camera_id) }}" />
+    <script>
+        setInterval(function() {
+            fetch('/keep_alive')
+        }, 5000);
+    </script>
+</body>
+</html>

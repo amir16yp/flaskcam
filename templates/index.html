@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Camera Feed</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script language="JavaScript" type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<style>
+/* Reset default styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Set the background color to black */
+body {
+  background-color: #000;
+  color: #fff;
+  font-family: Arial, sans-serif;
+  font-size: 16px;
+}
+
+/* Style the heading */
+h1, h2 {
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+h1 {
+  font-size: 2rem;
+}
+
+h2 {
+  font-size: 1.5rem;
+}
+
+/* Style the camera container */
+.camera-container {
+  margin-bottom: 2rem;
+}
+
+/* Style the video container */
+.video-container {
+  position: relative;
+  padding-bottom: 56.25%;
+}
+
+.video-container iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Style the button container */
+.button-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.button-container button {
+  background-color: #333;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  margin: 0 0.5rem;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.button-container button:hover {
+  background-color: #666;
+}
+
+/* Style the start and stop buttons */
+.start-button {
+  background-color: green;
+}
+
+.stop-button {
+  background-color: red;
+}
+</style>
+</head>
+<body>
+    <h1>Camera Feed</h1>
+
+            <div class="button-container">
+                <button class="start-button">Start Feed</button>
+                <button class="stop-button">Stop Feed</button>
+            </div>
+    {% for camera in available_cameras %}
+        <div class="camera-container">
+            <h2>{{ camera['name'] }}</h2>
+            <div class="video-container">
+                <iframe src="{{ url_for('video_feed', camera_id=camera['id']) }}" width="640" height="480"></iframe>
+            </div>
+
+        </div>
+    {% endfor %}
+
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            // Set up event listeners for the start and stop buttons
+            $('.start-button').on('click', function() {
+                var cameraId = $(this).data('camera-id');
+                $.get('/start_feed');
+            });
+
+            $('.stop-button').on('click', function() {
+                var cameraId = $(this).data('camera-id');
+                $.get('/stop_feed');
+            });
+        });
+    </script>
+</body>
+</html>

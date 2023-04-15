@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Neofetch Clone</title>
+    <style>
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f0f0;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 5px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #333333;
+}
+
+p {
+    font-size: 18px;
+    line-height: 1.5;
+    color: #666666;
+}
+
+.disk-usage {
+    margin-top: 30px;
+    padding: 10px;
+    background-color: #d1ecf1;
+    border-radius: 5px;
+}
+
+.memory-usage {
+    margin-top: 30px;
+    padding: 10px;
+    background-color: #d4edda;
+    border-radius: 5px;
+}
+
+.network-io-counters {
+    margin-top: 30px;
+    padding: 10px;
+    background-color: #f8d7da;
+    border-radius: 5px;
+}
+
+.network-io-counters p {
+    margin: 0;
+}
+
+@media (max-width: 767px) {
+    .container {
+        max-width: 100%;
+        padding: 10px;
+    }
+}</style>
+</head>
+<body>
+    <div class="container">
+        <h1>System Information</h1>
+        <p>Operating System: {{ os_name }}</p>
+        <p>Operating System Version: {{ os_version }}</p>
+        <p>CPU Information: {{ cpu_info }}</p>
+        <div class="disk-usage">
+            <p>Disk Usage: {{ disk_usage.percent }}% used ({{ disk_usage.used }} of {{ disk_usage.total }} total)</p>
+        </div>
+        <div class="memory-usage">
+            <p>Memory Usage: {{ memory_usage.percent }}% used ({{ memory_usage.used }} of {{ memory_usage.total }} total)</p>
+        </div>
+        <div class="network-io-counters">
+            <p>Network IO Counters: bytes sent: {{ network_io_counters.bytes_sent }}, bytes received: {{ network_io_counters.bytes_recv }}</p>
+        </div>
+    </div>
+</body>
+</html>
