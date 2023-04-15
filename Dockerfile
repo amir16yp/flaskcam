@@ -1,20 +1,24 @@
-# Use an official Python runtime as a parent image
+# Base image
 FROM python:3.9-slim-buster
 
-# Set the working directory to /app
+# Set the working directory
 WORKDIR /app
 
-# Copy the current directory contents into the container at /app
-COPY . /app
+# Copy the requirements file
+COPY requirements.txt .
 
-# Install any needed packages specified in requirements.txt
-RUN pip install --trusted-host pypi.python.org -r requirements.txt
+# Install the dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Set the environment variable for Gunicorn to use
-ENV APP_MODULE=flaskcamera:app
+# Copy the Flask app code
+COPY . .
 
-# Expose port 8000 for the application
+# Set the username and password as environment variables
+ENV FLASKCAM_USERNAME=""
+ENV FLASKCAM_PASSWORD=""
+
+# Expose the port used by Gunicorn
 EXPOSE 8000
 
-# Run the command to start Gunicorn
+# Start Gunicorn to run the Flask app
 CMD ["gunicorn", "--bind", "0.0.0.0:8000", "flaskcamera:app"]
