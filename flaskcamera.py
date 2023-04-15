@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 from flask import Flask, render_template, Response, request, session
 import cv2
 from functools import wraps
@@ -7,17 +9,23 @@ import psutil
 import humanize
 import distro
 import time
+import os
+from waitress import serve
 
 import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--username", type=str, required=True, help="basic auth username")
 parser.add_argument("--password", type=str, required=True, help="basic auth password")
+parser.add_argument('--host', type=str, required=True)
+parser.add_argument('--port', type=int, required=True)
 args = parser.parse_args()
+      #args.username = os.environ.get('FLASKCAM_USERNAME')
+      #args.password = os.environ.get('FLASKCAM_PASSWORD')
 
 app = Flask(__name__)
-app.config['BASIC_AUTH_USERNAME'] = args.username
-app.config['BASIC_AUTH_PASSWORD'] = args.password
+app.config['BASIC_AUTH_USERNAME'] = args.username #os.environ.get('FLASKCAM_USERNAME')
+app.config['BASIC_AUTH_PASSWORD'] = args.password #os.environ.get('FLASKCAM_PASSWORD')
 app.config['BASIC_AUTH_FORCE'] = True
 app.config['CAMERAS'] = []
 app.config['GENERATE_FRAMES'] = True
@@ -144,4 +152,4 @@ def home():
 	return render_template("distro.html",os_name=os_name,os_version=os_version,cpu_info=cpu_info,disk_usage=disk_usage_dict,memory_usage=memory_usage_dict,network_io_counters=network_io_counters_dict)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True)
+    serve(app, host=args.host, port=args.port)
