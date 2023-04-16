@@ -2,3 +2,7 @@ Flask
 opencv-python-headless
 numpy
 imutils
+psutil
+distro
+humanize
+waitress
