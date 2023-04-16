@@ -200,5 +200,5 @@ def home():
 	return render_template("distro.html",os_name=os_name,os_version=os_version,cpu_info=cpu_info,disk_usage=disk_usage_dict,memory_usage=memory_usage_dict,network_io_counters=network_io_counters_dict)
 
 if __name__ == '__main__':
-    app.run()
-    #serve(app, host=args.host, port=args.port)
+    #app.run()
+    serve(app, host=args.host, port=args.port)
