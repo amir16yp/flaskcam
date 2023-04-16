@@ -1,121 +1,154 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Camera Feed</title>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script language="JavaScript" type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<title>Video Feed</title>
 <style>
-/* Reset default styles */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-/* Set the background color to black */
+/* overall layout */
 body {
-  background-color: #000;
-  color: #fff;
-  font-family: Arial, sans-serif;
-  font-size: 16px;
+	font-family: sans-serif;
+	margin: 0;
+	padding: 0;
 }
 
-/* Style the heading */
-h1, h2 {
-  font-weight: bold;
-  margin-bottom: 1rem;
-}
-
+/* page header */
 h1 {
-  font-size: 2rem;
+	background-color: #333;
+	color: white;
+	margin: 0;
+	padding: 1rem;
+	text-align: center;
 }
 
-h2 {
-  font-size: 1.5rem;
+/* main content container */
+div {
+	margin: 1rem;
+	padding: 1rem;
+	border: 1px solid #ccc;
+	box-shadow: 2px 2px 5px #ddd;
 }
 
-/* Style the camera container */
-.camera-container {
-  margin-bottom: 2rem;
+/* available cameras list */
+ul {
+	margin: 0;
+	padding: 0;
+	list-style: none;
 }
 
-/* Style the video container */
-.video-container {
-  position: relative;
-  padding-bottom: 56.25%;
+/* available cameras list items */
+li {
+	padding: 0.5rem;
 }
 
-.video-container iframe {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+/* controls container */
+div:nth-of-type(2) {
+	display: flex;
+	justify-content: center;
+	align-items: flex-end;
+	margin-top: 2rem;
 }
 
-/* Style the button container */
-.button-container {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 1rem;
+/* style control buttons */
+button {
+	padding: 0.75rem;
+	margin: 0.25rem;
+	font-size: 1rem;
+	background-color: #333;
+	color: white;
+	border: none;
+	border-radius: 0.25rem;
+	cursor: pointer;
+	transition: background-color 0.3s ease;
 }
 
-.button-container button {
-  background-color: #333;
-  color: #fff;
-  border: none;
-  padding: 0.5rem 1rem;
-  margin: 0 0.5rem;
-  border-radius: 5px;
-  cursor: pointer;
+/* style control buttons on hover */
+button:hover {
+	background-color: #555;
 }
 
-.button-container button:hover {
-  background-color: #666;
+/* video feed container */
+div:nth-of-type(3) {
+	display: flex;
+	flex-wrap: wrap;
+	margin-top: 2rem;
 }
 
-/* Style the start and stop buttons */
-.start-button {
-  background-color: green;
+/* style iframes */
+iframe {
+	width: 45%;
+	height: 500px;
+	border: none;
+	box-shadow: 2px 2px 5px #ddd;
+	margin: 0.5rem;
 }
 
-.stop-button {
-  background-color: red;
+/* convert video form */
+form:nth-of-type(2) {
+	margin-top: 2rem;
+}
+
+/* style form labels */
+label {
+	display: inline-block;
+	margin-bottom: 0.5rem;
+}
+
+/* style form input */
+input[type="number"],
+input[type="submit"] {
+	padding: 0.5rem;
+	font-size: 1rem;
+	border: none;
+	border-radius: 0.25rem;
+	box-shadow: 2px 2px 5px #ddd;
+}
+
+/* style form input on focus */
+input[type="number"]:focus,
+input[type="submit"]:focus {
+	outline: none;
+	box-shadow: 2px 2px 5px #aaa;
 }
 </style>
 </head>
 <body>
-    <h1>Camera Feed</h1>
-
-            <div class="button-container">
-                <button class="start-button">Start Feed</button>
-                <button class="stop-button">Stop Feed</button>
-            </div>
-    {% for camera in available_cameras %}
-        <div class="camera-container">
-            <h2>{{ camera['name'] }}</h2>
-            <div class="video-container">
-                <iframe src="{{ url_for('video_feed', camera_id=camera['id']) }}" width="640" height="480"></iframe>
-            </div>
-
-        </div>
-    {% endfor %}
-
-
-    <script type="text/javascript">
-        $(document).ready(function() {
-            // Set up event listeners for the start and stop buttons
-            $('.start-button').on('click', function() {
-                var cameraId = $(this).data('camera-id');
-                $.get('/start_feed');
-            });
-
-            $('.stop-button').on('click', function() {
-                var cameraId = $(this).data('camera-id');
-                $.get('/stop_feed');
-            });
-        });
-    </script>
+	<h1>Video Feed</h1>
+	<div>
+		<h2>Available Cameras</h2>
+		<ul>
+			{% for camera in available_cameras %}
+			<li>{{ camera.name }}</li>
+			{% endfor %}
+		</ul>
+	</div>
+	<div>
+		<h2>Controls</h2>
+		<form action="/start_feed" method="POST" target="_blank">
+			<button>Start Video Feed</button>
+		</form>
+		<form action="/stop_feed" method="POST" target="_blank">
+			<button>Stop Video Feed</button>
+		</form>
+		<form action="/start_rec" method="POST" target="_blank">
+			<button>Start Recording</button>
+		</form>
+		<form action="/stop_rec" method="POST" target="_blank">
+			<button>Stop Recording</button>
+		</form>
+	</div>
+	<div>
+		<h2>Video Feed</h2>
+		{% for camera in available_cameras %}
+		<iframe src="{{ url_for('video_feed', camera_id=camera.id) }}"></iframe>
+		{% endfor %}
+	</div>
+	<div>
+		<h2>Convert Video</h2>
+		<form action="/convert/0" method="get" target="_blank">
+			<label for="camera_id">Camera ID:</label>
+			<input type="number" id="camera_id" name="camera_id" value="0"><br><br>
+			<input type="submit" value="Convert">
+		</form>
+	</div>
 </body>
 </html>
+

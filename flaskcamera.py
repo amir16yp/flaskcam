@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from flask import Flask, render_template, Response, request, session
+from flask import Flask, render_template, Response, request, session, send_file
 import cv2
 from functools import wraps
 from datetime import datetime
@@ -10,6 +10,7 @@ import humanize
 import distro
 import time
 import os
+import subprocess
 from waitress import serve
 
 import argparse
@@ -29,6 +30,7 @@ app.config['BASIC_AUTH_PASSWORD'] = args.password #os.environ.get('FLASKCAM_PASS
 app.config['BASIC_AUTH_FORCE'] = True
 app.config['CAMERAS'] = []
 app.config['GENERATE_FRAMES'] = True
+app.config['RECORD_FRAMES'] = False
 
 def check_auth(username, password):
     return username == app.config['BASIC_AUTH_USERNAME'] and password == app.config['BASIC_AUTH_PASSWORD']
@@ -40,18 +42,43 @@ def authenticate():
         {'WWW-Authenticate': 'Basic realm="Login Required"'}
     )
 
-def require_basic_auth(func):
-    @wraps(func)
+def require_basic_auth(f):
+    @wraps(f)
     def decorated(*args, **kwargs):
         auth = request.authorization
         if not auth or not check_auth(auth.username, auth.password):
             return authenticate()
-        return func(*args, **kwargs)
+        return f(*args, **kwargs)
     return decorated
+
+@app.route('/convert/<int:camera_id>')
+def convert_to_webm(camera_id):
+    directory = f"frames_{camera_id}"
+    output_file = f"{directory}.webm"
+    
+    # Get all files in the directory
+    files = os.listdir(directory)
+
+    # Filter for only jpg files and sort them by their frame number
+    frames = sorted([file for file in files if file.endswith('.jpg')], key=lambda x: int(x.split('.')[0]))
+
+    # Run ffmpeg to convert frames to webm
+    subprocess.run(['ffmpeg', '-y', '-framerate', '30', '-i', f"{directory}/%d.jpg", '-c:v', 'libvpx-vp9', '-pix_fmt', 'yuva420p', '-metadata', f'streamtitle=Camera {camera_id}', output_file], check=True)
+
+    # Return the webm file as a playable file
+    return send_file(output_file, mimetype='video/webm')
+
+
+
+
+from datetime import datetime
 
 class VideoCamera(object):
     def __init__(self, camera_id):
         self.video = cv2.VideoCapture(camera_id)
+        self.frames_folder = f"frames_{camera_id}"
+        os.makedirs(self.frames_folder, exist_ok=True)
+        self.frame_count = 0
 
     def __del__(self):
         self.video.release()
@@ -63,9 +90,16 @@ class VideoCamera(object):
             cv2.putText(image, timestamp, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
             encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 50]
             ret, jpeg = cv2.imencode('.jpg', image, encode_param)
+            if app.config['RECORD_FRAMES']:
+                filename = os.path.join(self.frames_folder, f"{self.frame_count}.jpg")
+                with open(filename, 'wb') as f:
+                    f.write(jpeg.tobytes())
+                self.frame_count += 1
             return jpeg.tobytes()
         else:
             return None
+
+
 
 @app.route('/')
 @require_basic_auth
@@ -93,17 +127,31 @@ def gen(camera):
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
 
-@app.route('/start_feed')
+@app.route('/start_feed', methods=['POST'])
 @require_basic_auth
 def start_feed():
     app.config['GENERATE_FRAMES'] = True
     return 'Video feed started'
 
-@app.route('/stop_feed')
+@app.route('/stop_feed', methods=['POST'])
 @require_basic_auth
-def stop_feed():
+def stop_recrd():
     app.config['GENERATE_FRAMES'] = False
     return 'Video feed stopped'
+
+@app.route('/start_rec', methods=['POST'])
+@require_basic_auth
+def start_rec():
+    app.config['RECORD_FRAMES'] = True
+    return 'Video feed started'
+
+@app.route('/stop_rec', methods=['POST'])
+@require_basic_auth
+def stop_rec():
+    app.config['RECORD_FRAMES'] = False
+    return 'Video feed stopped'
+
+
 
 @app.route('/video_feed')
 @require_basic_auth
@@ -152,4 +200,5 @@ def home():
 	return render_template("distro.html",os_name=os_name,os_version=os_version,cpu_info=cpu_info,disk_usage=disk_usage_dict,memory_usage=memory_usage_dict,network_io_counters=network_io_counters_dict)
 
 if __name__ == '__main__':
-    serve(app, host=args.host, port=args.port)
+    app.run()
+    #serve(app, host=args.host, port=args.port)
